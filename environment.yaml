@@ -1,0 +1,21 @@
+name: gapy1
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.11
+  - gammapy=1.1
+  - scipy=1.11.4
+  - jupyter_contrib_nbextensions
+  - pandas
+  - plotly
+  - jupyter
+  - tqdm
+  - ca-certificates
+  - certifi
+  - openssl
+  - p2j
+  - naima
+  - emcee
+  - corner
+prefix: /home/cburger/miniconda3/envs/gapy1
