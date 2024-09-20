@@ -1,0 +1,14 @@
+/.idea
+
+/analysis*
+/gammapy-data
+
+*.png
+*.xlsx
+*.old
+*.0
+*.log
+*.csv
+*.fits
+*.pickle
+*.txt
