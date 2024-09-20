@@ -1,0 +1,93 @@
+[main]
+analysis_version = "1"
+create_logfile = true
+check_tutorials_setup = false
+data_reduction_run_in_file = true
+dataset_name = "nan"
+
+[datastore]
+path = "/path/to/out/folder/of/data"
+filename = "nan"
+required_irf = "full-enclosure"  # "point-like", "all-optional"
+
+[hgps]
+run = true
+path = "./../../hgps_data/hgps_catalog_v1.fits"
+
+[source]
+name = "sample-name"
+get_position_from_config = true
+lon = 0.0
+lat = 0.0
+frame = "galactic"
+radius = 0.5
+
+[map]
+size = 5
+size_binsz = 0.02
+
+[runlist]
+create_in_file = true
+filename = "nan"
+cone_radius = 5
+filter.run = true
+filter.max_zenith = 45
+filter.years = [2021]
+filter.duration = "nan"
+filter.number = "nan"
+
+[background]
+method = "fov"
+mask.add = true
+mask.lon = 1.0
+mask.lat = 1.0
+mask.frame = "galactic"
+mask.radius = 0.5
+
+[energy]
+low = 0.3
+high = 50
+nbin = 15
+true_low = 0.1
+true_high = 150
+true_nbin = 35
+
+[model]
+run = true
+backend = "sherpa"  # "sherpa" or "minuit"
+spatial.frame = "galactic"
+sed.energy_limit = [0.3, 50]
+sed.energy_nbins = 7
+
+[model0]
+name = "default"
+#spatial.name = "PointSpatialModel"
+spatial.name = "DiskSpatialModel"
+spatial.lon.value = 1.0
+spatial.lon.frozen = true
+spatial.lat.value = 1.0
+spatial.lat.frozen = true
+spatial.radius.value = 0.92
+spatial.radius.frozen = true
+spatial.lon.limit = [0, 2]
+spatial.lat.limit = [0, 2]
+spatial.radius.limit = [0.2, 1.0]
+#spectral.name = "ExpCutoffPowerLawSpectralModel"
+spectral.name = "PowerLawSpectralModel"
+
+#[model1]
+#name = "model1"
+#spatial.name = "DiskSpatialModel"
+#spatial.lon.value = 2.0
+#spatial.lat.value = 2.0
+#spatial.radius.value = 0.3
+#spatial.lon.limit = [1.7, 2.3]
+#spatial.lat.limit = [2.7, 2.3]
+#spatial.radius.limit = [0.2, 0.6]
+#spectral.name = "PowerLawSpectralModel"
+
+[plot]
+show = true
+export = true
+dpi = 300
+colours = ["#461E52", "#CD5942", "#E68E36", "#556DC8", "#7998EE", "#E5A836"]
