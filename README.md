@@ -1,93 +1,89 @@
-# HESS-gapy1-sample
+# HESS-gapy1
 
+Scripts to use for data analysis with H.E.S.S. data using ``gammapy 1.1 LTS``.
 
-
-## Getting started
-
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin https://git.dias.ie/dias-hess-team/hess-gapy1-sample.git
-git branch -M main
-git push -uf origin main
-```
-
-## Integrate with your tools
-
-- [ ] [Set up project integrations](https://git.dias.ie/dias-hess-team/hess-gapy1-sample/-/settings/integrations)
-
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
 
 ## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+Create a conda environment with all the required packages using the following commands:
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+       conda env create --file environment.yaml
+       conda activate gapy1
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+## Config Parameters
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+| Table            | Parameter                  | Type         | Unit    | Description                                                                                                                                                                                                                                                                              |
+|------------------|----------------------------|--------------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **[main]**       |
+|                  | analysis_version           | str or int   | -       | Name the version, this will be reflected in the name of all files and the folder                                                                                                                                                                                                         |
+|                  | create_logfile             | bool         | -       | If ``true``, console output will be saved in a separate file. Output in the console will be produced regardless of this setting.                                                                                                                                                         | 
+|                  | check_tutorials_setup      | bool         | -       | If ``true``, a method will be run that will check if all packages are installed in order to run the gammapy tutorial                                                                                                                                                                     |
+|                  | data_reduction_run_in_file | bool         | -       | If ``true``, the data reduction will be performed in the file you are executing. If ``false``, the data reduction will not be performed in the file and it will try to read from file. If this is the first time you are executing the file, you have to run the data reduction in file. | 
+| **[datastore]**  |
+|                  | path                       | str          | -       | Specify the path of the datastore                                                                                                                                                                                                                                                        |
+|                  | filename                   | str          | -       | Default is ``"nan"``. Specify the HDU file name of the datastore. If set to ``"nan"``, the default, i.e. ``hdu-index.fits.gz`` will be selected.                                                                                                                                         |
+|                  | required_irf               | str          | -       | Define which IRF parameters are required from the datastore. Options are ``"full-enclosure``, ``point-like``, and ``"all-optional"``.                                                                                                                                                    |
+| **[hgps]**       |
+|                  | run                        | bool         | -       | If ``true``, the High Galactic Plane Survey (HGPS) Catalogue data by H.E.S.S. will be used to search for nearby sources.                                                                                                                                                                 |
+|                  | path                       | str          | -       | Specify the path of the HGPS fits file                                                                                                                                                                                                                                                   |
+| **[source]**     |
+|                  | name                       | str          | -       | Specify the source name. This will be reflected throughout the analysis. This will also be reflected in the name of all files and the folder.                                                                                                                                            |
+|                  | get_position_from_config   | bool         | -       | If ``true``, the values below (``lon/lat``) for the position will be used. If ``false``, and the name is put precisely, then the position can be read from the database using the astropy library.                                                                                       |
+|                  | lon                        | float        | deg     | Longitude or Right Ascension of source                                                                                                                                                                                                                                                   |
+|                  | lat                        | float        | deg     | Latitude or Declination of source                                                                                                                                                                                                                                                        |
+|                  | frame                      | str          | -       | Options:``"galactic"`` or ``"icrs"``. Frame of the source coordinates passed for ``lon``/``lat``, either ``"galactic"`` or ``"icrs"``. Note that the maps will always be in Galactic coordinates.                                                                                        |
+|                  | radius                     | float        | deg     | Spatial extension of the source in deg. This will adjust the size fo the mask centred around the source position (``lon``/``lat``). This will also be reflected in the name of all files and the folder.                                                                                 |
+| **[map]**        |
+|                  | size                       | int          | deg     | Specify size of the maps that are produced. Default is ``5`` deg, which creates a 5x5 deg map.                                                                                                                                                                                           |
+|                  | size_binsz                 | float        | deg     | Specify size of bins, default is ``0.02`` deg.                                                                                                                                                                                                                                           | 
+| **[runlist]**    |
+|                  | create_in_file             | bool         | -       | If ``true``, the runlist will be created while running the file according to the filters. If ``false`` the runlist will be loaded from disk.                                                                                                                                             |
+|                  | filename                   | str          | -       | Specify the filename of the runlist that should be loaded from disk. Default is ``"nan"``, which will load the default name produced when ``create_in_file`` was set to ``true``.                                                                                                        | 
+|                  | cone_radius                | float        | deg     | Default is ``5`` deg. Only relevant if ``create_in_file`` is ``true``.                                                                                                                                                                                                                   | 
+|                  | filter.run                 | bool         | -       | Specify whether the filters below should be executed. If ``true`` all filters will be executed. Else, none of them will.                                                                                                                                                                 | 
+|                  | filter.max_zenith          | int or float | -       | Default is ``"nan"``. Apply manual zenith angle filter to the runlist. Zenith angle observations above the input value will be filtered from the runlist. If ``filter.run`` is set to ``false``, this value will be ignored.                                                             | 
+|                  | filter.years               | list         | -       | Default is ``["nan"]``. Apply manual yearly filter by specifying the year(s) of the raw data to use (max. 2 elements in list in the form of e.g. ``[2021, 2022]``).                                                                                                                      | 
+|                  | filter.duration            | int or float | s       | Default is ``"nan"``. Standard duration for H.E.S.S. is ``1682.0`` s. Apply manual duration filter by specifying the minimum run duration in seconds. Runs shorter than this will be filtered out.                                                                                       | 
+|                  | filter.number              | int          | -       | Default is ``"nan"``. Apply manual number filter to the runlist. Only the specified number of runs will be used. This filter will be applied last. If ``filter.run`` is set to ``false``, this value will be ignored.                                                                    | 
+| **[energy]**     |
+|                  | low                        | float        | TeV     | Define measured energy range in TeV (low, high, number of bins)                                                                                                                                                                                                                          |
+|                  | high                       | float        | TeV     | Define measured energy range in TeV (low, high, number of bins)                                                                                                                                                                                                                          | 
+|                  | nbin                       | int          | -       | Define measured energy range in TeV (low, high, number of bins)                                                                                                                                                                                                                          | 
+|                  | true_low                   | float        | TeV     | Define true energy range (reduced IRFs are defined in true energy (i.e. not measured energy)). Measured energy range has to be fully encompassed by true energy range.                                                                                                                   |
+|                  | true_high                  | float        | TeV     | Define true energy range (reduced IRFs are defined in true energy (i.e. not measured energy)). Measured energy range has to be fully encompassed by true energy range.                                                                                                                   | 
+|                  | true_nbin                  | int          | -       | Define true energy range (reduced IRFs are defined in true energy (i.e. not measured energy)). Measured energy range has to be fully encompassed by true energy range.                                                                                                                   | 
+| **[background]** |
+|                  | method                     | str          | -       | Options: field-of-view (``"fov"``) or reflected (``"reflected"``) background methods. This choice will also show in the file names.                                                                                                                                                      |
+|                  | mask.add                   | bool         | -       | Whether or not a mask with the coordinates specified in ``mask.lon``/ ``mask.lat`` should added additionally to the default mask for background estimation.                                                                                                                              |
+|                  | mask.lon                   | float        | deg     | Longitude of mask                                                                                                                                                                                                                                                                        |
+|                  | mask.lat                   | float        | deg     | Latitude of mask                                                                                                                                                                                                                                                                         |
+|                  | mask.frame                 | str          | -       | Options:``"galactic"``. Frame of the mask coordinates passed for ``lon``/``lat``, either ``"galactic"``. Note that the maps will always be in Galactic coordinates.                                                                                                                      |
+|                  | mask.radius                | float        | deg     | Spatial extension of the mask in deg. This will adjust the size fo the mask centred around the source position (``lon``/``lat``). This will also be reflected in the name of all files and the folder.                                                                                   |
+| **[model]**      |
+|                  | run                        | bool         | -       | Whether or not to run the modelling section of the script.                                                                                                                                                                                                                               |
+|                  | backend                    | str          | -       | Which fitting algorythm to be used. Options: ``"sherpa"``, ``"minuit"``.                                                                                                                                                                                                                 |
+|                  | sed.energy_limit           | list(str)    | TeV     | Specify energy bounds of spectral energy distribution (SED) plot.                                                                                                                                                                                                                        |
+|                  | sed.energy_nbins           | int          | -       | Specify number of energy bins for SED.                                                                                                                                                                                                                                                   |
+| **[model0]**     |
+|                  | name                       | str          | -       | Name of the first model. Usually this is the source model with the name being identical to the name chosen in ``[source].name``, in which case you can chose ``"default``.                                                                                                               |
+|                  | spatial.name               | str          | -       | Which spatial model to use. Options currently are ``"PointSpatialModel"``, ``"DiskSpatialModel"``.                                                                                                                                                                                       |
+|                  | spatial.lon.value          | str or float | - / deg | Initial lon position of spatial model. Default is ``default``, in which case the position from ``[source].lon`` will be used.                                                                                                                                                            |
+|                  | spatial.lon.frozen         | bool         | -       | If ``true``, the lon position will be frozen for fitting. If ``true``, the lon position will be left free.                                                                                                                                                                               |
+|                  | spatial.lat.value          | str or float | - / deg | Initial lat position of spatial model. Default is ``default``, in which case the position from ``[source].lat`` will be used.                                                                                                                                                            |
+|                  | spatial.lat.frozen         | bool         | -       | If ``true``, the lon position will be frozen for fitting. If ``true``, the lon position will be left free.                                                                                                                                                                               |
+|                  | spatial.lon.limit          | list(float)  | -       | E.g. ``[16.5, 18.5]``. Set spatial fitting range for lon.                                                                                                                                                                                                                                |
+|                  | spatial.lat.limit          | list(float)  | -       | E.g. ``[16.5, 18.5]``. Set spatial fitting range for lat.                                                                                                                                                                                                                                |
+|                  | spatial.radius.limit       | list(float)  | -       | E.g. ``[0.2, 1.0]``. Set spatial fitting range for radius of extended source.                                                                                                                                                                                                            |
+|                  | spectral.name              | str          | -       | Which spatial model to use. Options currently are ``"PowerLawSpectralModel"``, ``"ExpCutoffPowerLawSpectralModel"``.                                                                                                                                                                     |
+| **[model1]**     |
+|                  | see above                  | -            | -       | Whole section is optional. Same options as for ``[model0]``. This is an additional model that will be fit.                                                                                                                                                                               |
+| **[plot]**       |
+|                  | show                       | bool         | -       | Whether or not to show the plots while running the script.                                                                                                                                                                                                                               |
+|                  | export                     | bool         | -       | Whether or not to write the plots to disk.                                                                                                                                                                                                                                               |
+|                  | dpi                        | int          | -       | Specify the resolution (dots per inch) that are wanted for the exported files written to disk.                                                                                                                                                                                           |
+|                  | colours                    | list(str)    | -       | List of colours with hex codes that will be used to the plots.                                                                                                                                                                                                                           |
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
 
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+## Author
+Christopher Burger-Scheidlin (cburger@cp.dias.ie)
