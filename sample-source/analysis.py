@@ -201,6 +201,8 @@ pandas_wide()
 export_plots: bool = config["plot"]["export"]
 show_plots: bool = config["plot"]["show"]
 dpi: int = config["plot"]["dpi"]
+grid: bool = config["plot"]["grid"]
+
 
 ######################################################################
 # Change global matplotlib settings
@@ -216,6 +218,11 @@ figure = {"figsize": (8, 6)}
 
 matplotlib.rc('font', **font)
 matplotlib.rc('figure', **figure)
+
+if grid:
+    # modify matplotlib to show grid permanently
+    matplotlib.rcParams.update({"axes.grid" : True, "grid.color": "grey"})
+
 
 ######################################################################
 # Input Source Information
@@ -603,8 +610,9 @@ if config["background"]["method"] == "fov":
 
     offset_max = 2.0 * u.deg
     maker_safe_mask = SafeMaskMaker(
-        methods=["offset-max", "bkg-peak"],
+        methods=["offset-max", "bkg-peak", "aeff-max"],
         offset_max=offset_max,
+        aeff_percent=10
     )
 
     print("Safe mask maker", maker_safe_mask)
@@ -669,72 +677,165 @@ if config["main"]["data_reduction_run_in_file"]:
         # ----------------
         print_green("Perform data reduction using 'FoV' background method ...")
 
-        # Run data reduction
-        bkg_norms = ["obs_id\tnorm\tnorm_err\ttilt"]
-        prb_runs = ["Error with\n"]
+        if config["background"]["submethod"] == "stacked":
+            # Run data reduction
+            bkg_norms = ["obs_id\tnorm\tnorm_err\ttilt"]
+            prb_runs = ["Error with\n"]
 
-        for obs in observations:
-            print(f"Processing {obs.obs_id} ...")
+            for obs in observations:
+                print(f"Processing {obs.obs_id} ...")
 
-            try:
-                # First a cutout of the target map is produced
-                cutout = dataset_stacked.cutout(
-                    obs.get_pointing_icrs(obs.tmid), width=2 * offset_max,
-                    name=f"obs-{obs.obs_id}")
-                # , mode="partial")
-                # galactic
+                try:
+                    # First a cutout of the target map is produced
+                    cutout = dataset_stacked.cutout(
+                        obs.get_pointing_icrs(obs.tmid), width=2 * offset_max,
+                        name=f"obs-{obs.obs_id}")
+                    # , mode="partial")
+                    # galactic
 
-                # A MapDataset is filled in this cutout geometry
-                dataset = maker.run(cutout, obs)
-                # The data quality cut is applied
-                dataset = maker_safe_mask.run(dataset, obs)
-                # Fit background model
-                dataset = maker_bkg.run(dataset)
+                    # A MapDataset is filled in this cutout geometry
+                    dataset = maker.run(cutout, obs)
+                    # The data quality cut is applied
+                    dataset = maker_safe_mask.run(dataset, obs)
+                    # Fit background model
+                    dataset = maker_bkg.run(dataset)
 
-                norm_ = dataset.models[0].spectral_model.norm.value
-                norm_err = dataset.models[0].spectral_model.norm.error
-                tilt = dataset.models[0].spectral_model.tilt.value
-                # If the background norm is completely off scale don't stack run
-                if np.abs(norm_ - 1.0) > 0.5:
-                    # Should usually be norm - 1.0
-                    print_yellow(f"Dropping run {obs.obs_id}: Bad norm.")
-                if norm_err / norm_ > 0.2:
-                    print_yellow(f"Dropping run {obs.obs_id}: Large error on norm.")
-                # if np.abs(tilt)>0.5:
-                #   print("Dropping run - Bad tilt.")
+                    norm_ = dataset.models[0].spectral_model.norm.value
+                    norm_err = dataset.models[0].spectral_model.norm.error
+                    tilt = dataset.models[0].spectral_model.tilt.value
+                    # If the background norm is completely off scale don't stack run
+                    if np.abs(norm_ - 1.0) > 0.5:
+                        # Should usually be norm - 1.0
+                        print_yellow(f"Dropping run {obs.obs_id}: Bad norm.")
+                    if norm_err / norm_ > 0.2:
+                        print_yellow(f"Dropping run {obs.obs_id}: Large error on norm.")
+                    # if np.abs(tilt)>0.5:
+                    #   print("Dropping run - Bad tilt.")
 
-                bkg_norms.append(
-                    f"{obs.obs_id}\t{round(norm_, 5)}\t{round(norm_err, 5)}\t{round(tilt, 5)}")
-                # del dataset  # to avoid confusion?
-                # del norm_
+                    bkg_norms.append(
+                        f"{obs.obs_id}\t{round(norm_, 5)}\t{round(norm_err, 5)}\t{round(tilt, 5)}")
+                    # del dataset  # to avoid confusion?
+                    # del norm_
 
-                # The resulting dataset cutout is stacked onto the final one
-                dataset_stacked.stack(dataset)
+                    # The resulting dataset cutout is stacked onto the final one
+                    dataset_stacked.stack(dataset)
 
-            except RuntimeError:
-                prb_runs.append(obs.obs_id)
-                print(f"Error with {obs.obs_id}")
-                pass
+                except RuntimeError:
+                    prb_runs.append(obs.obs_id)
+                    print(f"Error with {obs.obs_id}")
+                    pass
 
-        # Export background normalisation and problematic runs to file
-        bkg_norms = pd.DataFrame(bkg_norms).to_csv(
-            path / f"runs_bkg_norms_{std_filename}.txt", index=False, header=False, sep="\n")
-        prb_runs = pd.DataFrame(bkg_norms).to_csv(
-            path / f"runs_prb_runs_{std_filename}.txt", index=False, header=False, sep="\n")
+            # Export background normalisation and problematic runs to file
+            bkg_norms = pd.DataFrame(bkg_norms).to_csv(
+                path / f"runs_bkg_norms_{std_filename}.txt", index=False, header=False, sep="\n")
+            prb_runs = pd.DataFrame(bkg_norms).to_csv(
+                path / f"runs_prb_runs_{std_filename}.txt", index=False, header=False, sep="\n")
 
-        ############
-        # Save results to file
-        # We have one final dataset, which we write to disk and can then print and explore
-        # ----------------
+            ############
+            # Save results to file
+            # We have one final dataset, which we write to disk and can then print and explore
+            # ----------------
 
-        print_yellow("Writing stacked dataset to file ...")
-        dataset_stacked.write(path / f"dataset_stacked_{std_filename}.fits.gz", overwrite=True)
+            print_yellow("Writing stacked dataset to file ...")
+            dataset_stacked.write(path / f"dataset_stacked_{std_filename}.fits.gz", overwrite=True)
 
-        print_yellow(dataset_stacked)
-        # del dataset_stacked
-        # dataset_stacked = stacked.datasets["stacked"]
-        # print(dataset_stacked)
+            print_yellow(dataset_stacked)
+            # del dataset_stacked
+            # dataset_stacked = stacked.datasets["stacked"]
+            # print(dataset_stacked)
 
+        elif config["background"]["submethod"] == "joint":
+            raise NotImplementedError("The joint analysis method is not implemented yet.")
+            # todo implement the joint analysis
+
+            # Run data reduction
+            from gammapy.analysis import AnalysisConfig, Analysis
+            # Read the yaml file from disk
+            config_joint = AnalysisConfig.read(path=path / "config_joint.yaml")
+            analysis_joint = Analysis(config_joint)
+
+            # select observations:
+            analysis_joint.get_observations()
+
+            # run data reduction
+            analysis_joint.get_datasets()
+
+            # You can see there are 3 datasets now
+            print(analysis_joint.datasets)
+
+
+
+            # Run data reduction
+            bkg_norms = ["obs_id\tnorm\tnorm_err\ttilt"]
+            prb_runs = ["Error with\n"]
+
+            for obs in observations:
+                print(f"Processing {obs.obs_id} ...")
+
+                try:
+                    # First a cutout of the target map is produced
+                    cutout = dataset_stacked.cutout(
+                        obs.get_pointing_icrs(obs.tmid), width=2 * offset_max,
+                        name=f"obs-{obs.obs_id}")
+                    # , mode="partial")
+                    # galactic
+
+                    # A MapDataset is filled in this cutout geometry
+                    dataset = maker.run(cutout, obs)
+                    # The data quality cut is applied
+                    dataset = maker_safe_mask.run(dataset, obs)
+                    # Fit background model
+                    dataset = maker_bkg.run(dataset)
+
+                    norm_ = dataset.models[0].spectral_model.norm.value
+                    norm_err = dataset.models[0].spectral_model.norm.error
+                    tilt = dataset.models[0].spectral_model.tilt.value
+                    # If the background norm is completely off scale don't stack run
+                    if np.abs(norm_ - 1.0) > 0.5:
+                        # Should usually be norm - 1.0
+                        print_yellow(f"Dropping run {obs.obs_id}: Bad norm.")
+                    if norm_err / norm_ > 0.2:
+                        print_yellow(f"Dropping run {obs.obs_id}: Large error on norm.")
+                    # if np.abs(tilt)>0.5:
+                    #   print("Dropping run - Bad tilt.")
+
+                    bkg_norms.append(
+                        f"{obs.obs_id}\t{round(norm_, 5)}\t{round(norm_err, 5)}\t{round(tilt, 5)}")
+                    # del dataset  # to avoid confusion?
+                    # del norm_
+
+                    # The resulting dataset cutout is stacked onto the final one
+                    dataset_stacked.stack(dataset)
+
+                except RuntimeError:
+                    prb_runs.append(obs.obs_id)
+                    print(f"Error with {obs.obs_id}")
+                    pass
+
+            # Export background normalisation and problematic runs to file
+            bkg_norms = pd.DataFrame(bkg_norms).to_csv(
+                path / f"runs_bkg_norms_{std_filename}.txt", index=False, header=False, sep="\n")
+            prb_runs = pd.DataFrame(bkg_norms).to_csv(
+                path / f"runs_prb_runs_{std_filename}.txt", index=False, header=False, sep="\n")
+
+            ############
+            # Save results to file
+            # We have one final dataset, which we write to disk and can then print and explore
+            # ----------------
+
+            print_yellow("Writing stacked dataset to file ...")
+            dataset_stacked.write(path / f"dataset_stacked_{std_filename}.fits.gz", overwrite=True)
+
+            print_yellow(dataset_stacked)
+            # del dataset_stacked
+            # dataset_stacked = stacked.datasets["stacked"]
+            # print(dataset_stacked)
+
+
+        else:
+            raise KeyError("Submethod not supported. For field-of-view background method, "
+                           "chose 'stacked' or 'joint'. Ignore 'submethod' for other background "
+                           "methods")
 
 
     elif config["background"]["method"] == "reflected":
@@ -894,6 +995,8 @@ if config["background"]["method"] == "fov":
     # create a 2D mask for the images
     mask_image = exclusion_mask.sum_over_axes()
     mask_image.data = mask_image.data.astype(bool)
+    # Convert the image data from boolean to 1 and np.nan (!)
+    mask_image.data = np.where(mask_image.data, 1, np.nan)
 
     significance_map_off = significance_map * mask_image
     significance_all = significance_map.data[np.isfinite(significance_map.data)]
