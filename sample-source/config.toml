@@ -38,6 +38,7 @@ filter.number = "nan"
 
 [background]
 method = "fov"
+submethod = "stacked" # joint or stacked
 mask.add = true
 mask.lon = 1.0
 mask.lat = 1.0
@@ -91,3 +92,4 @@ show = true
 export = true
 dpi = 300
 colours = ["#461E52", "#CD5942", "#E68E36", "#556DC8", "#7998EE", "#E5A836"]
+grid = true
